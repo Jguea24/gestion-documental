@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -24,6 +25,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'profile_photo_path',
     ];
 
     /**
@@ -52,5 +54,22 @@ class User extends Authenticatable
     public function documentos(): HasMany
     {
         return $this->hasMany(Documento::class, 'usuario_id');
+    }
+
+    public function folders(): HasMany
+    {
+        return $this->hasMany(Folder::class, 'created_by');
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class);
+    }
+
+    public function getProfilePhotoUrlAttribute(): string
+    {
+        return $this->profile_photo_path
+            ? Storage::disk('public')->url($this->profile_photo_path)
+            : asset('images/johnny.png');
     }
 }
