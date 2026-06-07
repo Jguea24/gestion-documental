@@ -33,20 +33,6 @@ class RoleSeeder extends Seeder
             'users.create',
             'users.edit',
             'users.delete',
-            'semestres.ver',
-            'semestres.crear',
-            'semestres.editar',
-            'semestres.eliminar',
-            'carpetas.ver',
-            'carpetas.crear',
-            'carpetas.editar',
-            'carpetas.eliminar',
-            'documentos.ver',
-            'documentos.crear',
-            'documentos.editar',
-            'documentos.eliminar',
-            'documentos.descargar',
-            'usuarios.ver',
         ];
 
         foreach ($permissions as $permission) {
@@ -73,14 +59,6 @@ class RoleSeeder extends Seeder
                 'documents.download',
                 'documents.preview',
                 'trash.view',
-                'semestres.ver',
-                'carpetas.ver',
-                'carpetas.crear',
-                'carpetas.editar',
-                'documentos.ver',
-                'documentos.crear',
-                'documentos.editar',
-                'documentos.descargar',
             ]);
 
         Role::firstOrCreate(['name' => 'Estudiante', 'guard_name' => 'web'])
@@ -89,10 +67,6 @@ class RoleSeeder extends Seeder
                 'explorer.view',
                 'documents.download',
                 'documents.preview',
-                'semestres.ver',
-                'carpetas.ver',
-                'documentos.ver',
-                'documentos.descargar',
             ]);
     }
 }

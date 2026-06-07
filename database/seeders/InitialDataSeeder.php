@@ -2,9 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Carpeta;
 use App\Models\Folder;
-use App\Models\Semestre;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -19,23 +17,6 @@ class InitialDataSeeder extends Seeder
         );
 
         $admin->assignRole('Administrador');
-
-        $semestres = [
-            ['nombre' => 'Primer Semestre', 'anio' => 2026],
-            ['nombre' => 'Segundo Semestre', 'anio' => 2026],
-        ];
-
-        foreach ($semestres as $data) {
-            $semestre = Semestre::firstOrCreate($data, ['activo' => true]);
-
-            foreach (['Planificaciones', 'Informes', 'Evidencias'] as $nombreCarpeta) {
-                Carpeta::firstOrCreate([
-                    'semestre_id' => $semestre->id,
-                    'parent_id' => null,
-                    'nombre' => $nombreCarpeta,
-                ]);
-            }
-        }
 
         $this->seedFolderTree($admin->id);
     }

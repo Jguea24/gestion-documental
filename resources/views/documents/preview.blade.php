@@ -13,9 +13,9 @@
 
         <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             @if ($document->isPdf())
-                <iframe src="{{ Storage::disk('public')->url($document->path) }}" class="h-[75vh] w-full rounded-xl border border-slate-200 dark:border-slate-800"></iframe>
+                <iframe src="{{ route('documents.inline', $document) }}" class="h-[75vh] w-full rounded-xl border border-slate-200 dark:border-slate-800"></iframe>
             @elseif ($document->isImage())
-                <img src="{{ Storage::disk('public')->url($document->path) }}" alt="{{ $document->original_name }}" class="mx-auto max-h-[75vh] rounded-xl object-contain">
+                <img src="{{ route('documents.inline', $document) }}" alt="{{ $document->original_name }}" class="mx-auto max-h-[75vh] rounded-xl object-contain">
             @else
                 <div class="flex h-80 items-center justify-center text-center">
                     <div>

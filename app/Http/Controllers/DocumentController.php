@@ -52,6 +52,19 @@ class DocumentController extends Controller
         );
     }
 
+    public function inline(Document $document): StreamedResponse
+    {
+        abort_unless(auth()->user()?->can('documents.preview'), 403);
+        abort_unless(Storage::disk('public')->exists($document->path), 404);
+
+        return Storage::disk('public')->response(
+            $document->path,
+            $document->original_name.'.'.$document->extension,
+            ['Content-Type' => $document->mime_type ?: 'application/octet-stream'],
+            'inline'
+        );
+    }
+
     public function preview(Document $document): View
     {
         abort_unless(auth()->user()?->can('documents.preview'), 403);

@@ -51,11 +51,6 @@ class User extends Authenticatable
         ];
     }
 
-    public function documentos(): HasMany
-    {
-        return $this->hasMany(Documento::class, 'usuario_id');
-    }
-
     public function folders(): HasMany
     {
         return $this->hasMany(Folder::class, 'created_by');

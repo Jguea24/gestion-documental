@@ -59,6 +59,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/documents/{document}/download', [DocumentController::class, 'download'])
         ->middleware('permission:documents.download')
         ->name('documents.download');
+    Route::get('/documents/{document}/inline', [DocumentController::class, 'inline'])
+        ->middleware('permission:documents.preview')
+        ->name('documents.inline');
     Route::get('/documents/{document}/preview', [DocumentController::class, 'preview'])
         ->middleware('permission:documents.preview')
         ->name('documents.preview');
