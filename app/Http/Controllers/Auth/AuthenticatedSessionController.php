@@ -28,6 +28,10 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        if ($request->user()->hasRestrictedFolderAccess()) {
+            return redirect()->route($request->user()->homeRouteName());
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

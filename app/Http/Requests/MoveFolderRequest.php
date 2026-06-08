@@ -9,7 +9,12 @@ class MoveFolderRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('folders.move') ?? false;
+        $folder = $this->route('folder');
+        $user = $this->user();
+
+        return $folder
+            && ($user?->can('move', $folder) ?? false)
+            && (! $this->filled('parent_id') || $user->canAccessFolder($this->integer('parent_id')));
     }
 
     public function rules(): array

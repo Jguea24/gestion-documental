@@ -22,6 +22,8 @@ class StoreUserRequest extends FormRequest
             'roles.*' => ['exists:roles,name'],
             'permissions' => ['array'],
             'permissions.*' => ['exists:permissions,name'],
+            'folder_permissions' => ['array'],
+            'folder_permissions.*' => ['exists:folders,id'],
         ];
     }
 }

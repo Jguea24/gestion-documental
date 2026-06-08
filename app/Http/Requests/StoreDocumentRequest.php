@@ -8,7 +8,10 @@ class StoreDocumentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('documents.upload') ?? false;
+        $user = $this->user();
+
+        return ($user?->can('documents.upload') ?? false)
+            && $user->canAccessFolder($this->integer('folder_id'));
     }
 
     public function rules(): array

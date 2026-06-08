@@ -9,6 +9,7 @@ use App\Models\Document;
 use App\Models\Folder;
 use App\Services\DocumentStorageService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -44,7 +45,7 @@ class DocumentController extends Controller
 
     public function download(Document $document): StreamedResponse
     {
-        abort_unless(auth()->user()?->can('documents.download'), 403);
+        Gate::authorize('download', $document);
 
         return Storage::disk('public')->download(
             $document->path,
@@ -54,7 +55,7 @@ class DocumentController extends Controller
 
     public function inline(Document $document): StreamedResponse
     {
-        abort_unless(auth()->user()?->can('documents.preview'), 403);
+        Gate::authorize('view', $document);
         abort_unless(Storage::disk('public')->exists($document->path), 404);
 
         return Storage::disk('public')->response(
@@ -67,14 +68,14 @@ class DocumentController extends Controller
 
     public function preview(Document $document): View
     {
-        abort_unless(auth()->user()?->can('documents.preview'), 403);
+        Gate::authorize('view', $document);
 
         return view('documents.preview', compact('document'));
     }
 
     public function destroy(Document $document): RedirectResponse
     {
-        abort_unless(auth()->user()?->can('documents.delete'), 403);
+        Gate::authorize('delete', $document);
 
         $folderId = $document->folder_id;
         $document->delete();
@@ -85,18 +86,19 @@ class DocumentController extends Controller
 
     public function restore(int $document): RedirectResponse
     {
-        abort_unless(auth()->user()?->can('documents.restore'), 403);
+        $document = Document::withTrashed()->findOrFail($document);
 
-        Document::withTrashed()->findOrFail($document)->restore();
+        Gate::authorize('restore', $document);
+        $document->restore();
 
         return back()->with('success', 'Archivo restaurado correctamente.');
     }
 
     public function forceDelete(int $document): RedirectResponse
     {
-        abort_unless(auth()->user()?->can('documents.delete'), 403);
-
         $document = Document::onlyTrashed()->findOrFail($document);
+
+        Gate::authorize('delete', $document);
         Storage::disk('public')->delete($document->path);
         $document->forceDelete();
 

@@ -9,7 +9,9 @@ class UpdateFolderRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('folders.rename') ?? false;
+        $folder = $this->route('folder');
+
+        return $folder && ($this->user()?->can('update', $folder) ?? false);
     }
 
     public function rules(): array

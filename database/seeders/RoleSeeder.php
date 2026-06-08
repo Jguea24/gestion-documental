@@ -63,7 +63,6 @@ class RoleSeeder extends Seeder
 
         Role::firstOrCreate(['name' => 'Estudiante', 'guard_name' => 'web'])
             ->syncPermissions([
-                'dashboard.ver',
                 'explorer.view',
                 'documents.download',
                 'documents.preview',

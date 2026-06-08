@@ -9,7 +9,13 @@ class StoreFolderRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('folders.create') ?? false;
+        $user = $this->user();
+
+        if (! ($user?->can('folders.create') ?? false)) {
+            return false;
+        }
+
+        return ! $this->filled('parent_id') || $user->canAccessFolder($this->integer('parent_id'));
     }
 
     public function rules(): array

@@ -9,7 +9,8 @@ class FolderPolicy
 {
     public function view(User $user, Folder $folder): bool
     {
-        return $user->can('explorer.view');
+        return $user->can('explorer.view')
+            && $user->canAccessFolder($folder->id);
     }
 
     public function create(User $user): bool
@@ -23,9 +24,21 @@ class FolderPolicy
             || ($user->can('folders.rename') && $folder->created_by === $user->id);
     }
 
+    public function move(User $user, Folder $folder): bool
+    {
+        return $user->hasRole('Administrador')
+            || ($user->can('folders.move') && $folder->created_by === $user->id);
+    }
+
     public function delete(User $user, Folder $folder): bool
     {
         return $user->hasRole('Administrador')
             || ($user->can('folders.delete') && $folder->created_by === $user->id);
+    }
+
+    public function restore(User $user, Folder $folder): bool
+    {
+        return $user->hasRole('Administrador')
+            || ($user->can('folders.restore') && $folder->created_by === $user->id);
     }
 }

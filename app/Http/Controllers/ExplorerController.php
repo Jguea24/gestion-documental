@@ -16,12 +16,35 @@ class ExplorerController extends Controller
     {
         abort_unless($request->user()?->can('explorer.view'), 403);
 
-        $folder = $request->filled('folder')
-            ? Folder::with('parent')->findOrFail($request->integer('folder'))
-            : Folder::whereNull('parent_id')->orderBy('name')->first();
+        $user = $request->user();
+        $accessibleFolderIds = $user->hasRestrictedFolderAccess()
+            ? $user->accessibleFolderIds()
+            : null;
+
+        if ($request->filled('folder')) {
+            $folder = Folder::with('parent')->findOrFail($request->integer('folder'));
+            abort_if($accessibleFolderIds !== null && ! $accessibleFolderIds->contains($folder->id), 403);
+        } else {
+            $folderQuery = Folder::whereNull('parent_id')->ordered();
+
+            if ($accessibleFolderIds !== null) {
+                $folderQuery->whereIn('id', $accessibleFolderIds);
+            }
+
+            $folder = $folderQuery->first();
+
+            if (! $folder && $accessibleFolderIds !== null && $accessibleFolderIds->isNotEmpty()) {
+                $folder = Folder::whereIn('id', $accessibleFolderIds)->ordered()->first();
+            }
+        }
 
         $foldersQuery = Folder::with('creator')->withCount(['children', 'documents']);
         $documentsQuery = Document::with('user', 'folder');
+
+        if ($accessibleFolderIds !== null) {
+            $foldersQuery->whereIn('id', $accessibleFolderIds);
+            $documentsQuery->whereIn('folder_id', $accessibleFolderIds);
+        }
 
         if ($request->filled('q')) {
             $search = $request->string('q')->toString();
@@ -47,13 +70,21 @@ class ExplorerController extends Controller
             $documentsQuery->where('user_id', $request->integer('user_id'));
         }
 
+        $breadcrumbItems = $breadcrumbs->for($folder?->loadMissing('parent'));
+
+        if ($accessibleFolderIds !== null) {
+            $breadcrumbItems = $breadcrumbItems->filter(fn (Folder $crumb) => $accessibleFolderIds->contains($crumb->id))->values();
+        }
+
         return view('explorer.index', [
             'currentFolder' => $folder,
-            'breadcrumbs' => $breadcrumbs->for($folder?->loadMissing('parent')),
-            'sidebarFolders' => $tree->roots(),
-            'folders' => $foldersQuery->orderBy('name')->get(),
+            'breadcrumbs' => $breadcrumbItems,
+            'sidebarFolders' => $tree->roots($user),
+            'folders' => $foldersQuery->ordered()->get(),
             'documents' => $documentsQuery->orderBy('original_name')->get(),
-            'allFolders' => Folder::orderBy('name')->get(),
+            'allFolders' => $accessibleFolderIds === null
+                ? Folder::ordered()->get()
+                : Folder::whereIn('id', $accessibleFolderIds)->ordered()->get(),
             'users' => User::orderBy('name')->get(),
             'filters' => $request->only(['q', 'semester', 'subject', 'user_id']),
         ]);

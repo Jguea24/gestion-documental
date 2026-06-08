@@ -8,7 +8,9 @@ class UpdateDocumentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('documents.rename') ?? false;
+        $document = $this->route('document');
+
+        return $document && ($this->user()?->can('update', $document) ?? false);
     }
 
     public function rules(): array

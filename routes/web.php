@@ -4,6 +4,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ExplorerController;
 use App\Http\Controllers\FolderController;
+use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TrashController;
 use App\Http\Controllers\UserController;
@@ -11,13 +12,17 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return auth()->check()
-        ? redirect()->route('dashboard')
+        ? redirect()->route(auth()->user()->homeRouteName())
         : redirect()->route('login');
 });
 
 Route::get('/dashboard', DashboardController::class)
     ->middleware(['auth', 'verified', 'permission:dashboard.ver'])
     ->name('dashboard');
+
+Route::get('/language/{locale}', [LanguageController::class, 'switch'])
+    ->whereIn('locale', ['es', 'en'])
+    ->name('language.switch');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

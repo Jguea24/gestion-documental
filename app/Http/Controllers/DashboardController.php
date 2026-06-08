@@ -5,14 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\Document;
 use App\Models\Folder;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function __invoke(): View
+    public function __invoke(Request $request): View
     {
-        return view('dashboard', Cache::remember('dashboard.metrics', now()->addMinutes(5), fn () => $this->dashboardData()));
+        abort_if($request->user()->hasRestrictedFolderAccess(), 403);
+
+        $cacheKey = 'dashboard.metrics.'.app()->getLocale();
+
+        return view('dashboard', Cache::remember($cacheKey, now()->addMinutes(5), fn () => $this->dashboardData()));
     }
 
     private function dashboardData(): array
@@ -43,7 +48,9 @@ class DashboardController extends Controller
             ->where('created_at', '>=', now()->startOfMonth()->subMonths(5))
             ->get(['created_at', 'size']);
 
-        $monthLabels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        $monthLabels = app()->getLocale() === 'en'
+            ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            : ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
         $monthlyStats = collect();
 
         for ($monthOffset = 5; $monthOffset >= 0; $monthOffset--) {
@@ -65,10 +72,10 @@ class DashboardController extends Controller
 
         return [
             'stats' => [
-                ['label' => 'Documentos', 'value' => number_format($documentCount), 'detail' => $this->humanFileSize($storageBytes).' almacenados'],
-                ['label' => 'Carpetas', 'value' => number_format($folderCount), 'detail' => 'Estructura activa'],
-                ['label' => 'Usuarios', 'value' => number_format($userCount), 'detail' => 'Cuentas registradas'],
-                ['label' => 'Papelera', 'value' => number_format($deletedDocumentCount + $deletedFolderCount), 'detail' => $deletedDocumentCount.' archivos, '.$deletedFolderCount.' carpetas'],
+                ['label' => __('Documents'), 'value' => number_format($documentCount), 'detail' => __(':size stored', ['size' => $this->humanFileSize($storageBytes)])],
+                ['label' => __('Folders'), 'value' => number_format($folderCount), 'detail' => __('Active structure')],
+                ['label' => __('Users'), 'value' => number_format($userCount), 'detail' => __('Registered accounts')],
+                ['label' => __('Trash'), 'value' => number_format($deletedDocumentCount + $deletedFolderCount), 'detail' => __(':files files, :folders folders', ['files' => $deletedDocumentCount, 'folders' => $deletedFolderCount])],
             ],
             'extensionStats' => $extensionStats,
             'monthlyStats' => $monthlyStats,

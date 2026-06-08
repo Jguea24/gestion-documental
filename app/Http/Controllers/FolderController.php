@@ -7,6 +7,7 @@ use App\Http\Requests\StoreFolderRequest;
 use App\Http\Requests\UpdateFolderRequest;
 use App\Models\Folder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 
 class FolderController extends Controller
 {
@@ -38,7 +39,7 @@ class FolderController extends Controller
 
     public function destroy(Folder $folder): RedirectResponse
     {
-        abort_unless(auth()->user()?->can('folders.delete'), 403);
+        Gate::authorize('delete', $folder);
 
         $folder->delete();
 
@@ -48,18 +49,20 @@ class FolderController extends Controller
 
     public function restore(int $folder): RedirectResponse
     {
-        abort_unless(auth()->user()?->can('folders.restore'), 403);
+        $folder = Folder::withTrashed()->findOrFail($folder);
 
-        Folder::withTrashed()->findOrFail($folder)->restore();
+        Gate::authorize('restore', $folder);
+        $folder->restore();
 
         return back()->with('success', 'Carpeta restaurada correctamente.');
     }
 
     public function forceDelete(int $folder): RedirectResponse
     {
-        abort_unless(auth()->user()?->can('folders.delete'), 403);
+        $folder = Folder::onlyTrashed()->findOrFail($folder);
 
-        Folder::onlyTrashed()->findOrFail($folder)->forceDelete();
+        Gate::authorize('delete', $folder);
+        $folder->forceDelete();
 
         return back()->with('success', 'Carpeta eliminada definitivamente.');
     }

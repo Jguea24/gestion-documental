@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\Folder;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
@@ -39,6 +40,7 @@ class UserController extends Controller
 
         $user->syncRoles($request->input('roles', []));
         $user->syncPermissions($request->input('permissions', []));
+        $user->permittedFolders()->sync($request->input('folder_permissions', []));
 
         return redirect()->route('users.index')->with('success', 'Usuario creado correctamente.');
     }
@@ -64,6 +66,7 @@ class UserController extends Controller
         $user->update($data);
         $user->syncRoles($request->input('roles', []));
         $user->syncPermissions($request->input('permissions', []));
+        $user->permittedFolders()->sync($request->input('folder_permissions', []));
 
         return redirect()->route('users.index')->with('success', 'Usuario actualizado correctamente.');
     }
@@ -81,8 +84,9 @@ class UserController extends Controller
     private function formData(User $user): array
     {
         return [
-            'user' => $user->loadMissing('roles', 'permissions'),
+            'user' => $user->loadMissing('roles', 'permissions', 'permittedFolders'),
             'roles' => Role::orderBy('name')->get(),
+            'folders' => Folder::ordered()->get(),
             'permissionsByGroup' => Permission::orderBy('name')
                 ->get()
                 ->groupBy(fn (Permission $permission) => str($permission->name)->before('.')->toString()),

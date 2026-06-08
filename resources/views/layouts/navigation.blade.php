@@ -8,32 +8,39 @@
                         <img src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" class="h-10 w-10 rounded-xl object-cover object-top ring-2 ring-emerald-100">
                         <div class="hidden leading-tight lg:block">
                             <div class="text-sm font-bold text-slate-900 dark:text-slate-100">Wini S.A.S</div>
-                            <div class="text-xs text-slate-500 dark:text-slate-400">Gestion Documental</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400">{{ __('Document Management') }}</div>
                         </div>
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
+                    @if (Auth::user()->can('dashboard.ver') && ! Auth::user()->hasRestrictedFolderAccess())
+                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                            {{ __('Dashboard') }}
+                        </x-nav-link>
+                    @endif
                     <x-nav-link :href="route('explorer.index')" :active="request()->routeIs('explorer.*')">
-                        {{ __('Explorador') }}
+                        {{ __('Explorer') }}
                     </x-nav-link>
                     <x-nav-link :href="route('trash.index')" :active="request()->routeIs('trash.*')">
-                        {{ __('Papelera') }}
+                        {{ __('Trash') }}
                     </x-nav-link>
                     @can('users.view')
                         <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
-                            {{ __('Usuarios') }}
+                            {{ __('Users') }}
                         </x-nav-link>
                     @endcan
                 </div>
             </div>
 
             <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <div class="hidden sm:flex sm:items-center sm:ms-6 sm:gap-3">
+                <div class="inline-flex overflow-hidden rounded-full border border-slate-200 bg-slate-50 text-xs font-bold dark:border-slate-800 dark:bg-slate-900">
+                    <a href="{{ route('language.switch', 'es') }}" class="px-3 py-2 {{ app()->getLocale() === 'es' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-800' }}">ES</a>
+                    <a href="{{ route('language.switch', 'en') }}" class="px-3 py-2 {{ app()->getLocale() === 'en' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-800' }}">EN</a>
+                </div>
+
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium leading-4 text-slate-600 transition hover:bg-white hover:text-emerald-800 focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
@@ -81,18 +88,20 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
+            @if (Auth::user()->can('dashboard.ver') && ! Auth::user()->hasRestrictedFolderAccess())
+                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                    {{ __('Dashboard') }}
+                </x-responsive-nav-link>
+            @endif
             <x-responsive-nav-link :href="route('explorer.index')" :active="request()->routeIs('explorer.*')">
-                {{ __('Explorador') }}
+                {{ __('Explorer') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('trash.index')" :active="request()->routeIs('trash.*')">
-                {{ __('Papelera') }}
+                {{ __('Trash') }}
             </x-responsive-nav-link>
             @can('users.view')
                 <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
-                    {{ __('Usuarios') }}
+                    {{ __('Users') }}
                 </x-responsive-nav-link>
             @endcan
         </div>
@@ -105,6 +114,14 @@
             </div>
 
             <div class="mt-3 space-y-1">
+                <div class="px-4 py-2">
+                    <div class="mb-2 text-xs font-semibold uppercase text-slate-500">{{ __('Language') }}</div>
+                    <div class="inline-flex overflow-hidden rounded-full border border-slate-200 bg-slate-50 text-xs font-bold">
+                        <a href="{{ route('language.switch', 'es') }}" class="px-3 py-2 {{ app()->getLocale() === 'es' ? 'bg-blue-600 text-white' : 'text-slate-600' }}">ES</a>
+                        <a href="{{ route('language.switch', 'en') }}" class="px-3 py-2 {{ app()->getLocale() === 'en' ? 'bg-blue-600 text-white' : 'text-slate-600' }}">EN</a>
+                    </div>
+                </div>
+
                 <x-responsive-nav-link :href="route('profile.edit')">
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
