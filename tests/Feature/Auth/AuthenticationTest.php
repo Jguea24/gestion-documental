@@ -9,7 +9,9 @@ test('login screen can be rendered', function () {
 });
 
 test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'email' => 'test.user.wini@gmail.com',
+    ]);
 
     $response = $this->post('/login', [
         'email' => $user->email,
@@ -20,8 +22,23 @@ test('users can authenticate using the login screen', function () {
     $response->assertRedirect(route('dashboard', absolute: false));
 });
 
+test('users can not authenticate with emails outside the wini extension', function () {
+    $user = User::factory()->create([
+        'email' => 'test@example.com',
+    ]);
+
+    $this->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ])->assertSessionHasErrors('email');
+
+    $this->assertGuest();
+});
+
 test('users can not authenticate with invalid password', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'email' => 'wrong.password.wini@gmail.com',
+    ]);
 
     $this->post('/login', [
         'email' => $user->email,

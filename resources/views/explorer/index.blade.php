@@ -12,12 +12,6 @@
             </aside>
 
             <main class="min-w-0 flex-1 p-4 lg:p-6">
-                @if (session('success'))
-                    <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
-                        {{ session('success') }}
-                    </div>
-                @endif
-
                 @if ($errors->any())
                     <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
                         Revisa los datos ingresados.
@@ -39,10 +33,10 @@
 
                         <div class="flex flex-wrap gap-2">
                             @can('folders.create')
-                                <button type="button" @click="createFolderOpen = true" class="rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-900">Nueva carpeta</button>
+                                <button type="button" @click="$dispatch('open-modal', 'create-folder-modal')" class="rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-900">Nueva carpeta</button>
                             @endcan
                             @can('documents.upload')
-                                <button type="button" @click="uploadOpen = true" class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 dark:bg-white dark:text-slate-900">Subir archivos</button>
+                                <button type="button" @click="$dispatch('open-modal', 'upload-document-modal')" class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 dark:bg-white dark:text-slate-900">Subir archivos</button>
                             @endcan
                         </div>
                     </div>
@@ -140,17 +134,17 @@
         </div>
 
         <div x-show="context.open" x-cloak @click.outside="context.open = false" :style="`left:${context.x}px; top:${context.y}px`" class="fixed z-50 w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-slate-900">
-            <button type="button" @click="renameOpen = true; context.open = false" class="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Editar nombre</button>
-            <button type="button" @click="moveOpen = true; context.open = false" class="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Mover</button>
+            <button type="button" @click="$dispatch('open-modal', 'rename-resource-modal'); context.open = false" class="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Editar nombre</button>
+            <button type="button" @click="$dispatch('open-modal', 'move-resource-modal'); context.open = false" class="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Mover</button>
             <a x-show="context.type === 'document'" :href="`/documents/${context.id}/download`" class="block rounded-lg px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Descargar</a>
-            <form :action="context.type === 'folder' ? `/folders/${context.id}` : `/documents/${context.id}`" method="POST" @submit="if (!confirm(context.type === 'folder' ? 'Eliminar esta carpeta?' : 'Eliminar este archivo?')) $event.preventDefault()">
+            <form :action="context.type === 'folder' ? `/folders/${context.id}` : `/documents/${context.id}`" method="POST" @submit="if (!confirmSubmit($el, context.type === 'folder' ? 'Eliminar carpeta' : 'Eliminar archivo', 'Esta accion enviara el elemento a la papelera.')) $event.preventDefault()">
                 @csrf
                 @method('DELETE')
                 <button class="block w-full rounded-lg px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950">Eliminar</button>
             </form>
         </div>
 
-        <div x-show="createFolderOpen" x-cloak class="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/60 p-4">
+        <x-modal name="create-folder-modal" maxWidth="md">
             <form method="POST" action="{{ route('folders.store') }}" class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
                 @csrf
                 <input type="hidden" name="parent_id" value="{{ $currentFolder?->id }}">
@@ -158,39 +152,39 @@
                 <input name="name" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-950" placeholder="Nombre de carpeta" required>
                 <textarea name="description" class="mt-3 w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-950" rows="3" placeholder="Descripcion"></textarea>
                 <div class="mt-5 flex justify-end gap-2">
-                    <button type="button" @click="createFolderOpen = false" class="rounded-lg px-4 py-2 text-sm">Cancelar</button>
+                    <button type="button" @click="$dispatch('close-modal', 'create-folder-modal')" class="rounded-lg px-4 py-2 text-sm">Cancelar</button>
                     <button class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Crear</button>
                 </div>
             </form>
-        </div>
+        </x-modal>
 
-        <div x-show="uploadOpen" x-cloak class="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/60 p-4">
+        <x-modal name="upload-document-modal" maxWidth="md">
             <form method="POST" action="{{ route('documents.store') }}" enctype="multipart/form-data" class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
                 @csrf
                 <input type="hidden" name="folder_id" value="{{ $currentFolder?->id }}">
                 <h3 class="mb-4 text-lg font-semibold">Subir archivos</h3>
                 <input type="file" name="files[]" multiple class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-950" required>
                 <div class="mt-5 flex justify-end gap-2">
-                    <button type="button" @click="uploadOpen = false" class="rounded-lg px-4 py-2 text-sm">Cancelar</button>
+                    <button type="button" @click="$dispatch('close-modal', 'upload-document-modal')" class="rounded-lg px-4 py-2 text-sm">Cancelar</button>
                     <button class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Subir</button>
                 </div>
             </form>
-        </div>
+        </x-modal>
 
-        <div x-show="renameOpen" x-cloak class="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/60 p-4">
+        <x-modal name="rename-resource-modal" maxWidth="md">
             <form :action="context.type === 'folder' ? `/folders/${context.id}` : `/documents/${context.id}`" method="POST" class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
                 @csrf
                 @method('PATCH')
                 <h3 class="mb-4 text-lg font-semibold">Renombrar</h3>
                 <input :name="context.type === 'folder' ? 'name' : 'original_name'" x-model="context.name" class="w-full rounded-lg border-slate-300 dark:border-slate-700 dark:bg-slate-950" required>
                 <div class="mt-5 flex justify-end gap-2">
-                    <button type="button" @click="renameOpen = false" class="rounded-lg px-4 py-2 text-sm">Cancelar</button>
+                    <button type="button" @click="$dispatch('close-modal', 'rename-resource-modal')" class="rounded-lg px-4 py-2 text-sm">Cancelar</button>
                     <button class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Guardar</button>
                 </div>
             </form>
-        </div>
+        </x-modal>
 
-        <div x-show="moveOpen" x-cloak class="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/60 p-4">
+        <x-modal name="move-resource-modal" maxWidth="md">
             <form :action="context.type === 'folder' ? `/folders/${context.id}/move` : `/documents/${context.id}/move`" method="POST" class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
                 @csrf
                 @method('PATCH')
@@ -202,11 +196,11 @@
                     @endforeach
                 </select>
                 <div class="mt-5 flex justify-end gap-2">
-                    <button type="button" @click="moveOpen = false" class="rounded-lg px-4 py-2 text-sm">Cancelar</button>
+                    <button type="button" @click="$dispatch('close-modal', 'move-resource-modal')" class="rounded-lg px-4 py-2 text-sm">Cancelar</button>
                     <button class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Mover</button>
                 </div>
             </form>
-        </div>
+        </x-modal>
     </div>
 
     <script>
@@ -214,10 +208,6 @@
             return {
                 dark: false,
                 dragging: false,
-                createFolderOpen: false,
-                uploadOpen: false,
-                renameOpen: false,
-                moveOpen: false,
                 context: { open: false, x: 0, y: 0, id: null, name: '', type: null },
                 init() { this.dark = localStorage.getItem('darkMode') === '1'; },
                 openActionMenu(event, type, id, name) {

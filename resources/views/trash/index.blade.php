@@ -5,10 +5,6 @@
             <p class="text-sm text-slate-500">Restaura carpetas y archivos eliminados.</p>
         </div>
 
-        @if (session('success'))
-            <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">{{ session('success') }}</div>
-        @endif
-
         <div class="grid gap-6 lg:grid-cols-2">
             <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                 <h2 class="mb-3 font-semibold text-slate-900 dark:text-slate-100">Carpetas eliminadas</h2>
@@ -25,7 +21,7 @@
                                     @method('PATCH')
                                     <button class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">Restaurar</button>
                                 </form>
-                                <form method="POST" action="{{ route('folders.force-delete', $folder->id) }}" onsubmit="return confirm('Eliminar definitivamente esta carpeta? Esta accion no se puede deshacer.')">
+                                <form method="POST" action="{{ route('folders.force-delete', $folder->id) }}" onsubmit="return confirmSubmit(this, 'Eliminar carpeta definitivamente', 'Esta accion no se puede deshacer.')">
                                     @csrf
                                     @method('DELETE')
                                     <button class="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950">Eliminar</button>
@@ -53,7 +49,7 @@
                                     @method('PATCH')
                                     <button class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">Restaurar</button>
                                 </form>
-                                <form method="POST" action="{{ route('documents.force-delete', $document->id) }}" onsubmit="return confirm('Eliminar definitivamente este archivo? Esta accion no se puede deshacer.')">
+                                <form method="POST" action="{{ route('documents.force-delete', $document->id) }}" onsubmit="return confirmSubmit(this, 'Eliminar archivo definitivamente', 'Esta accion no se puede deshacer.')">
                                     @csrf
                                     @method('DELETE')
                                     <button class="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-semibold text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950">Eliminar</button>

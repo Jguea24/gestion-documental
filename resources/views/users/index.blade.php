@@ -10,10 +10,6 @@
             @endcan
         </div>
 
-        @if (session('success'))
-            <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">{{ session('success') }}</div>
-        @endif
-
         <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
@@ -49,7 +45,7 @@
                                         @endcan
                                         @can('users.delete')
                                             @if (auth()->id() !== $user->id)
-                                                <form method="POST" action="{{ route('users.destroy', $user) }}" onsubmit="return confirm('Eliminar este usuario?')">
+                                                <form method="POST" action="{{ route('users.destroy', $user) }}" onsubmit="return confirmSubmit(this, 'Eliminar usuario', 'Esta accion eliminara el usuario seleccionado.')">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button class="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950">Eliminar</button>

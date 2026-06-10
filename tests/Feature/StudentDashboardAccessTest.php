@@ -27,7 +27,9 @@ it('keeps dashboard blocked for students even with direct permission', function 
 });
 
 it('redirects students to explorer after login', function () {
-    $student = User::factory()->create();
+    $student = User::factory()->create([
+        'email' => 'student.user.wini@gmail.com',
+    ]);
     $student->assignRole('Estudiante');
 
     $this->post('/login', [

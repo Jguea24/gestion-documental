@@ -6,6 +6,7 @@
     $selectedFolderPermissions = collect(old('folder_permissions', $user->permittedFolders->pluck('id')->all()))
         ->map(fn ($id) => (int) $id)
         ->all();
+    $autoGenerateEmail = ! $user->exists;
     $roleDescriptions = [
         'Administrador' => 'Acceso completo a usuarios, documentos y configuracion.',
         'Docente' => 'Gestiona carpetas y documentos propios.',
@@ -145,6 +146,14 @@
     .user-input:focus {
         border-color: #2563eb;
         box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+    }
+
+    .user-help {
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.45;
     }
 
     .user-roles {
@@ -437,6 +446,9 @@
                 <div>
                     <label for="email" class="user-label">Correo</label>
                     <input id="email" type="email" name="email" value="{{ old('email', $user->email) }}" required autocomplete="email" class="user-input">
+                    @if ($autoGenerateEmail)
+                        <div class="user-help">Se genera automaticamente desde el nombre con el formato nombre.wini@gmail.com.</div>
+                    @endif
                     <x-input-error :messages="$errors->get('email')" class="mt-2" />
                 </div>
 
@@ -541,3 +553,49 @@
         <button class="user-btn user-btn-primary">Guardar usuario</button>
     </div>
 </div>
+
+@if ($autoGenerateEmail)
+    <script>
+        (() => {
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+
+            if (!nameInput || !emailInput) return;
+
+            let lastGeneratedEmail = emailInput.value || '';
+
+            function userSlug(value) {
+                return value
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '.')
+                    .replace(/^\.+|\.+$/g, '');
+            }
+
+            function generatedEmail() {
+                const slug = userSlug(nameInput.value);
+                return slug ? `${slug}.wini@gmail.com` : '';
+            }
+
+            function syncEmail() {
+                const nextEmail = generatedEmail();
+                const canReplace = emailInput.value === '' || emailInput.value === lastGeneratedEmail;
+
+                if (canReplace) {
+                    emailInput.value = nextEmail;
+                    lastGeneratedEmail = nextEmail;
+                }
+            }
+
+            nameInput.addEventListener('input', syncEmail);
+            emailInput.addEventListener('input', () => {
+                if (emailInput.value !== lastGeneratedEmail) {
+                    lastGeneratedEmail = '';
+                }
+            });
+
+            syncEmail();
+        })();
+    </script>
+@endif

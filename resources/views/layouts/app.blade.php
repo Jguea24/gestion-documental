@@ -34,5 +34,17 @@
                 {{ $slot }}
             </main>
         </div>
+
+        @stack('scripts')
+
+        <script>
+            window.confirmSubmit = function (form, title, description = 'Esta accion no se puede deshacer.') {
+                if (form.dataset.confirmed === 'true') {
+                    return true;
+                }
+
+                return window.confirm(`${title}\n\n${description}`);
+            };
+        </script>
     </body>
 </html>

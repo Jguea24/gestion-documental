@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 class StoreUserRequest extends FormRequest
@@ -12,11 +13,20 @@ class StoreUserRequest extends FormRequest
         return $this->user()?->can('users.create') ?? false;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if (! $this->filled('email') && $this->filled('name')) {
+            $this->merge([
+                'email' => $this->generatedInstitutionalEmail($this->string('name')->toString()),
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'email' => ['required', 'email', 'max:255', 'ends_with:.wini@gmail.com', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::defaults()],
             'roles' => ['array'],
             'roles.*' => ['exists:roles,name'],
@@ -25,5 +35,17 @@ class StoreUserRequest extends FormRequest
             'folder_permissions' => ['array'],
             'folder_permissions.*' => ['exists:folders,id'],
         ];
+    }
+
+    private function generatedInstitutionalEmail(string $name): string
+    {
+        $slug = Str::of($name)
+            ->ascii()
+            ->lower()
+            ->replaceMatches('/[^a-z0-9]+/', '.')
+            ->trim('.')
+            ->toString();
+
+        return ($slug ?: 'usuario').'.wini@gmail.com';
     }
 }
